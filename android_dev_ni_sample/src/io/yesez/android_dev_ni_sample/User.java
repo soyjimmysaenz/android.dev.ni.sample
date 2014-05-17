@@ -5,28 +5,12 @@ package io.yesez.android_dev_ni_sample;
  */
 public class User {
 
-	public static String ID_FIELD = "id";
-	public static String NAME_FIELD = "name";
-	public static String EMAIL_FIELD = "email";
-	public static String PHONE_FIELD = "phone";
-	public static String WEBSITE_FIELD = "website";
-
 	private int id;
 	private String name;
 	private String email;
 	private String phone;
 	private String website;
 	private Address address;
-
-	public User(){}
-	public User(int id, String name, String email, String phone, String website, Address address){
-		this.id = id;
-		this.name = name;
-		this.email = email;
-		this.phone = phone;
-		this.website = website;
-		this.address = address;
-	}
 
 	@Override
 	public String toString(){

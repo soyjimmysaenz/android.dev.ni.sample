@@ -11,6 +11,8 @@ import android.widget.TextView;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,6 +25,7 @@ public class MainActivity extends Activity {
 	String url = "http://jsonplaceholder.typicode.com/users/";
 	ArrayList<User> modelList;
 	ArrayAdapter<User> adapter;
+	Gson parser;
 
 	Button btnLoad;
 	ListView lvData;
@@ -36,6 +39,7 @@ public class MainActivity extends Activity {
 
 	private void init(){
 		HttpManager.getInstance().init(getApplicationContext());
+		parser = new Gson();
 		modelList = new ArrayList<User>();
 		adapter = new ArrayAdapter<User>(this, android.R.layout.simple_list_item_1, modelList);
 
@@ -77,25 +81,8 @@ public class MainActivity extends Activity {
 	}
 
 	private ArrayList<User> parse(JSONArray jsonArray){
-		ArrayList<User> list = new ArrayList<User>();
-		for (int i = 0; i < jsonArray.length(); i++) {
-			JSONObject jsonItem;
-			try {
-				jsonItem = jsonArray.getJSONObject(i);
-				User model = new User(
-						jsonItem.getInt(User.ID_FIELD),
-						jsonItem.getString(User.NAME_FIELD),
-						jsonItem.getString(User.EMAIL_FIELD),
-						jsonItem.getString(User.PHONE_FIELD),
-						jsonItem.getString(User.WEBSITE_FIELD),
-						null
-				);
-				list.add(model);
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
-		return list;
+		return parser.fromJson(jsonArray.toString(),
+				new TypeToken<ArrayList<User>>(){}.getType());
 	}
 
 	private void setMessage(String msg){
