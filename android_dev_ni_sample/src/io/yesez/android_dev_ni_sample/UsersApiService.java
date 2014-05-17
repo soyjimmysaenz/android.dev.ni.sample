@@ -21,18 +21,17 @@ public class UsersApiService {
 		parser = new Gson();
 	}
 
-	public void getAll(final UsersCallback callback){
+	public void getAll(){
 		JsonArrayRequest request = new JsonArrayRequest(url, new Response.Listener<JSONArray>() {
 			@Override
 			public void onResponse(JSONArray response) {
 				ArrayList<User> users = parse(response);
-				callback.onSuccess(users);
+				BusProvider.getInstance().post(new OnUsersRetrievedEvent(users, null));
 			}
 		}, new Response.ErrorListener() {
 			@Override
 			public void onErrorResponse(VolleyError error) {
-				error.printStackTrace();
-				callback.onError(error);
+				BusProvider.getInstance().post(new OnUsersRetrievedEvent(null, error));
 			}
 		});
 		HttpManager.getInstance().getQueue().add(request);

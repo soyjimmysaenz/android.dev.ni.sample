@@ -18,6 +18,8 @@ public class HttpManager {
 		return self;
 	}
 
+	private HttpManager(){}
+
 	public void init(Context ctx){
 		mRequestQueue = Volley.newRequestQueue(ctx);
 	}

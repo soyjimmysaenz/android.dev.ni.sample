@@ -6,6 +6,8 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import com.squareup.otto.Subscribe;
+
 import java.util.ArrayList;
 
 public class MainActivity extends Activity {
@@ -13,7 +15,6 @@ public class MainActivity extends Activity {
 	ArrayList<User> modelList;
 	ArrayAdapter<User> adapter;
 	UsersApiService api;
-	UsersCallback callback;
 
 	Button btnLoad;
 	ListView lvData;
@@ -25,7 +26,14 @@ public class MainActivity extends Activity {
 		init();
 	}
 
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		BusProvider.getInstance().unregister(this);
+	}
+
 	private void init(){
+		BusProvider.getInstance().register(this);
 		HttpManager.getInstance().init(getApplicationContext());
 		api = new UsersApiService();
 		modelList = new ArrayList<User>();
@@ -42,24 +50,11 @@ public class MainActivity extends Activity {
 				callService();
 			}
 		});
-
-		callback = new UsersCallback() {
-			@Override
-			public void onSuccess(ArrayList<User> list) {
-				process(list);
-			}
-
-			@Override
-			public void onError(Throwable exception) {
-				exception.printStackTrace();
-				setMessage("algo salió mal :(");
-			}
-		};
 	}
 
 	private void callService(){
 		setMessage(getString(R.string.loading));
-		api.getAll(this.callback);
+		api.getAll();
 	}
 
 	private void process(ArrayList<User> list){
@@ -71,5 +66,15 @@ public class MainActivity extends Activity {
 
 	private void setMessage(String msg){
 		btnLoad.setText(msg);
+	}
+
+	@Subscribe
+	public void onUsersRetrieved(OnUsersRetrievedEvent event){
+		if(event.Error == null){
+			process(event.Users);
+		}else{
+			event.Error.printStackTrace();
+			setMessage("Algo salió mal :(");
+		}
 	}
 }
