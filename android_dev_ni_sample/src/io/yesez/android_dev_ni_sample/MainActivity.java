@@ -2,30 +2,18 @@ package io.yesez.android_dev_ni_sample;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends Activity {
 
-	String url = "http://jsonplaceholder.typicode.com/users/";
 	ArrayList<User> modelList;
 	ArrayAdapter<User> adapter;
-	Gson parser;
+	UsersApiService api;
+	UsersCallback callback;
 
 	Button btnLoad;
 	ListView lvData;
@@ -39,7 +27,7 @@ public class MainActivity extends Activity {
 
 	private void init(){
 		HttpManager.getInstance().init(getApplicationContext());
-		parser = new Gson();
+		api = new UsersApiService();
 		modelList = new ArrayList<User>();
 		adapter = new ArrayAdapter<User>(this, android.R.layout.simple_list_item_1, modelList);
 
@@ -54,35 +42,31 @@ public class MainActivity extends Activity {
 				callService();
 			}
 		});
+
+		callback = new UsersCallback() {
+			@Override
+			public void onSuccess(ArrayList<User> list) {
+				process(list);
+			}
+
+			@Override
+			public void onError(Throwable exception) {
+				exception.printStackTrace();
+				setMessage("algo salió mal :(");
+			}
+		};
 	}
 
 	private void callService(){
 		setMessage(getString(R.string.loading));
-		JsonArrayRequest request = new JsonArrayRequest(url, new Response.Listener<JSONArray>() {
-			@Override
-			public void onResponse(JSONArray response) {
-				process(response);
-			}
-		}, new Response.ErrorListener() {
-			@Override
-			public void onErrorResponse(VolleyError error) {
-				error.printStackTrace();
-				setMessage("Algo salió mal :(");
-			}
-		});
-		HttpManager.getInstance().getQueue().add(request);
+		api.getAll(this.callback);
 	}
 
-	private void process(JSONArray response){
+	private void process(ArrayList<User> list){
 		modelList.clear();
-		modelList.addAll(parse(response));
+		modelList.addAll(list);
 		adapter.notifyDataSetChanged();
 		setMessage(getString(R.string.load));
-	}
-
-	private ArrayList<User> parse(JSONArray jsonArray){
-		return parser.fromJson(jsonArray.toString(),
-				new TypeToken<ArrayList<User>>(){}.getType());
 	}
 
 	private void setMessage(String msg){
